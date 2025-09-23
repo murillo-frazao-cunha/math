@@ -1,0 +1,1340 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Divide & Brilha — Joguinho de Divisão com Vírgula</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+        :root {
+            --glass-bg: rgba(255, 255, 255, 0.08);
+            --glass-border: rgba(255, 255, 255, 0.18);
+            --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.37);
+            --glass-blur: 16px;
+
+            --primary: #667eea;
+            --primary-light: #764ba2;
+            --secondary: #f093fb;
+            --accent: #4facfe;
+            --success: #00f260;
+            --danger: #ff6b6b;
+            --warning: #feca57;
+
+            --text-primary: rgba(255, 255, 255, 0.95);
+            --text-secondary: rgba(255, 255, 255, 0.7);
+            --text-muted: rgba(255, 255, 255, 0.5);
+
+            --bg-primary: #0c0c0c;
+            --bg-secondary: #1a1a1a;
+
+            --border-radius: 20px;
+            --border-radius-sm: 12px;
+            --border-radius-lg: 24px;
+
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.15);
+            --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.25);
+            --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.35);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html, body {
+            height: 100%;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            color: var(--text-primary);
+            background:
+                    radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3), transparent 50%),
+                    radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.3), transparent 50%),
+                    radial-gradient(circle at 40% 40%, rgba(120, 219, 226, 0.2), transparent 50%),
+                    linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+            background-attachment: fixed;
+            overflow-x: hidden;
+        }
+
+        /* Animated background particles */
+        .bg-particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .particle {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: rgba(255, 255, 255, 0.6);
+            border-radius: 50%;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); opacity: 0.5; }
+            50% { transform: translateY(-20px) rotate(180deg); opacity: 1; }
+        }
+
+        /* Glass morphism components */
+        .glass {
+            background: var(--glass-bg);
+            backdrop-filter: blur(var(--glass-blur));
+            -webkit-backdrop-filter: blur(var(--glass-blur));
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--glass-shadow);
+        }
+
+        .glass-strong {
+            background: rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            box-shadow:
+                    0 8px 32px rgba(0, 0, 0, 0.4),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+        }
+
+        /* Header */
+        .topbar {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px 32px;
+            margin: 16px 16px 0 16px;
+            border-radius: var(--border-radius);
+            background: var(--glass-bg);
+            backdrop-filter: blur(var(--glass-blur));
+            -webkit-backdrop-filter: blur(var(--glass-blur));
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--shadow-md);
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .brand .logo {
+            font-size: 32px;
+            background: linear-gradient(45deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+        }
+
+        .brand h1 {
+            font-size: 24px;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            background: linear-gradient(135deg, var(--text-primary), var(--text-secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .controls {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .stat {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            padding: 12px 16px;
+            border-radius: var(--border-radius-sm);
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            transition: all 0.3s ease;
+        }
+
+        .stat:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+            background: rgba(255, 255, 255, 0.12);
+        }
+
+        .stat span {
+            font-size: 11px;
+            font-weight: 500;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .stat strong {
+            font-size: 20px;
+            font-weight: 800;
+            color: var(--text-primary);
+        }
+
+        /* Main content */
+        .container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: calc(100vh - 200px);
+            padding: 32px;
+        }
+
+        .card {
+            width: 100%;
+            max-width: 800px;
+            padding: 40px;
+            border-radius: var(--border-radius-lg);
+            background: var(--glass-bg);
+            backdrop-filter: blur(var(--glass-blur));
+            -webkit-backdrop-filter: blur(var(--glass-blur));
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--glass-shadow);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+        }
+
+        .level-hint {
+            font-size: 14px;
+            color: var(--accent);
+            margin-bottom: 32px;
+            font-weight: 500;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        .challenge {
+            display: grid;
+            gap: 32px;
+            align-items: center;
+        }
+
+        .question {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .prompt {
+            font-size: 20px;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .expression {
+            display: inline-flex;
+            align-items: center;
+            gap: 24px;
+            font-size: 48px;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            background: linear-gradient(135deg, #667eea, #764ba2, #f093fb);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+        }
+
+        .expression .op, .expression .equals {
+            font-weight: 700;
+            color: var(--text-primary);
+            filter: none;
+        }
+
+        .answer-row {
+            display: flex;
+            gap: 16px;
+            align-items: stretch;
+        }
+
+        .answer-input {
+            flex: 1;
+            padding: 20px 24px;
+            font-size: 20px;
+            font-weight: 500;
+            border-radius: var(--border-radius);
+            border: 1px solid var(--glass-border);
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            color: var(--text-primary);
+            outline: none;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        .answer-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.2);
+            background: rgba(255, 255, 255, 0.12);
+        }
+
+        .answer-input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .btn {
+            position: relative;
+            border: 1px solid var(--glass-border);
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            color: var(--text-primary);
+            padding: 20px 32px;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 16px;
+            letter-spacing: -0.01em;
+            transition: all 0.3s ease;
+            font-family: inherit;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn.primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            border-color: rgba(255, 255, 255, 0.3);
+            color: white;
+            font-weight: 700;
+        }
+
+        .btn.primary:hover {
+            box-shadow:
+                    0 8px 32px rgba(102, 126, 234, 0.4),
+                    var(--shadow-md);
+        }
+
+        .btn.ghost {
+            background: transparent;
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .actions {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+        }
+
+        .feedback {
+            min-height: 32px;
+            font-size: 18px;
+            font-weight: 500;
+            text-align: center;
+            padding: 16px;
+            border-radius: var(--border-radius);
+            transition: all 0.3s ease;
+        }
+
+        .feedback.ok {
+            color: var(--success);
+            background: rgba(0, 242, 96, 0.1);
+            border: 1px solid rgba(0, 242, 96, 0.3);
+        }
+
+        .feedback.err {
+            color: var(--danger);
+            background: rgba(255, 107, 107, 0.1);
+            border: 1px solid rgba(255, 107, 107, 0.3);
+        }
+
+        .feedback.info {
+            color: var(--warning);
+            background: rgba(254, 202, 87, 0.1);
+            border: 1px solid rgba(254, 202, 87, 0.3);
+        }
+
+        /* Modal */
+        .modal {
+            position: fixed;
+            inset: 0;
+            display: grid;
+            place-items: center;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            z-index: 1000;
+            padding: 20px;
+        }
+
+        .modal[hidden] { display: none; }
+
+        .modal-content {
+            width: 100%;
+            max-width: 600px;
+            padding: 40px;
+            border-radius: var(--border-radius-lg);
+            background: var(--glass-bg);
+            backdrop-filter: blur(var(--glass-blur));
+            -webkit-backdrop-filter: blur(var(--glass-blur));
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--glass-shadow);
+            position: relative;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-content::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+        }
+
+        .modal h2 {
+            margin-bottom: 24px;
+            font-size: 28px;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--text-primary), var(--text-secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: transparent;
+            color: var(--text-muted);
+            border: none;
+            font-size: 28px;
+            cursor: pointer;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+
+        .close:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-primary);
+        }
+
+        .help-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 32px;
+            flex-wrap: wrap;
+        }
+
+        /* Animation board */
+        .anim-board {
+            display: grid;
+            gap: 20px;
+        }
+
+        .anim-row {
+            display: grid;
+            grid-template-columns: auto 1fr;
+            gap: 20px;
+            align-items: center;
+            padding: 24px;
+            border-radius: var(--border-radius);
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+        }
+
+        .tag {
+            font-size: 12px;
+            color: var(--primary);
+            background: rgba(102, 126, 234, 0.2);
+            padding: 8px 16px;
+            border-radius: 20px;
+            border: 1px solid rgba(102, 126, 234, 0.3);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .num-card {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+            font-family: 'Inter', monospace;
+        }
+
+        .num {
+            font-size: 32px;
+            font-weight: 800;
+            color: var(--text-primary);
+        }
+
+        .eq {
+            color: var(--text-secondary);
+            font-size: 18px;
+            font-weight: 500;
+        }
+
+        .big-op {
+            font-size: 28px;
+            color: var(--accent);
+            font-weight: 700;
+        }
+
+        .status {
+            color: var(--text-secondary);
+            margin-top: 16px;
+            line-height: 1.6;
+            font-size: 16px;
+        }
+
+        /* Lives (hearts) */
+        .hearts #lives {
+            display: flex;
+            gap: 8px;
+        }
+
+        .heart {
+            font-size: 20px;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+            transition: all 0.3s ease;
+        }
+
+        .heart.lost {
+            opacity: 0.3;
+            transform: scale(0.8);
+        }
+
+        /* Timer */
+        .timer {
+            min-width: 140px;
+            text-align: center;
+        }
+
+        .timer .bar {
+            width: 120px;
+            height: 8px;
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--glass-border);
+            overflow: hidden;
+        }
+
+        .timer .fill {
+            height: 100%;
+            border-radius: 20px;
+            background: linear-gradient(90deg, var(--accent), var(--secondary));
+            transition: width 0.3s ease;
+            box-shadow: 0 0 12px rgba(79, 172, 254, 0.5);
+        }
+
+        .timer #timerText {
+            font-size: 12px;
+            color: var(--text-secondary);
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        /* Confetti */
+        .confetti {
+            pointer-events: none;
+            position: fixed;
+            inset: 0;
+            overflow: hidden;
+            z-index: 999;
+        }
+
+        .piece {
+            position: absolute;
+            width: 12px;
+            height: 16px;
+            opacity: 0;
+            transform: translateY(-20px) rotate(0deg);
+            border-radius: 4px;
+            animation: fall 2s ease-in forwards;
+        }
+
+        @keyframes fall {
+            0% { opacity: 0; transform: translateY(-20px) rotate(0deg); }
+            10% { opacity: 1; }
+            100% { opacity: 0; transform: translateY(100vh) rotate(720deg); }
+        }
+
+        /* Animations */
+        .shake { animation: shake 0.4s ease-in-out; }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0) }
+            20% { transform: translateX(-8px) }
+            40% { transform: translateX(8px) }
+            60% { transform: translateX(-4px) }
+            80% { transform: translateX(4px) }
+        }
+
+        .pop { animation: pop 0.4s ease-out; }
+        @keyframes pop {
+            0% { transform: scale(0.9); opacity: 0.7; }
+            60% { transform: scale(1.05); opacity: 1; }
+            100% { transform: scale(1); }
+        }
+
+        .blink { animation: blink 1s ease-in-out; }
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            color: var(--text-muted);
+            padding: 32px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .topbar {
+                margin: 8px;
+                padding: 16px 20px;
+                flex-direction: column;
+                gap: 16px;
+            }
+
+            .controls {
+                justify-content: center;
+                gap: 8px;
+            }
+
+            .stat {
+                padding: 8px 12px;
+            }
+
+            .container {
+                padding: 16px;
+            }
+
+            .card {
+                padding: 24px;
+            }
+
+            .expression {
+                font-size: 36px;
+                gap: 16px;
+            }
+
+            .answer-input {
+                padding: 16px 20px;
+                font-size: 18px;
+            }
+
+            .btn {
+                padding: 16px 24px;
+                font-size: 14px;
+            }
+
+            .answer-row {
+                flex-direction: column;
+            }
+
+            .modal-content {
+                padding: 24px;
+                margin: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="bg-particles" id="particles"></div>
+
+<header class="topbar">
+    <div class="brand">
+        <span class="logo">➗</span>
+        <h1>Divide & Brilha</h1>
+    </div>
+
+    <div class="controls">
+        <div class="stat">
+            <span>Nível</span>
+            <strong id="levelNum">1</strong>
+        </div>
+        <div class="stat">
+            <span>Pontos</span>
+            <strong id="score">0</strong>
+        </div>
+        <div class="stat">
+            <span>Sequência</span>
+            <strong id="streak">0</strong>
+        </div>
+        <div class="stat hearts" title="Vidas">
+            <div id="lives"></div>
+        </div>
+        <div class="stat timer" title="Tempo">
+            <span id="timerText">--s</span>
+            <div class="bar"><div id="timerBar" class="fill" style="width:0%"></div></div>
+        </div>
+        <button id="resetProgress" class="btn ghost" title="Zerar progresso">Zerar</button>
+    </div>
+</header>
+
+<main class="container">
+    <section class="card">
+        <div class="level-hint">
+            <span id="levelInfo">Nível 1 • Responda com número inteiro (sem vírgula).</span>
+        </div>
+        <div class="challenge">
+            <div class="question" aria-live="polite">
+                <span class="prompt">Quanto é</span>
+                <div class="expression">
+                    <span id="dividend">5,5</span>
+                    <span class="op">÷</span>
+                    <span id="divisor">2,5</span>
+                    <span class="equals">=</span>
+                </div>
+            </div>
+            <div class="answer-row">
+                <input
+                        id="answer"
+                        class="answer-input"
+                        inputmode="numeric"
+                        autocomplete="off"
+                        placeholder="Digite um número inteiro (sem vírgula)"
+                        aria-label="Resposta"
+                />
+                <button id="submit" class="btn primary">Responder</button>
+            </div>
+            <div class="actions">
+                <button id="help" class="btn">Pedir ajuda</button>
+            </div>
+            <div id="feedback" class="feedback" aria-live="assertive"></div>
+        </div>
+    </section>
+</main>
+
+<!-- MODAL BEM-VINDO -->
+<div id="welcomeModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="welcomeTitle" hidden>
+    <div class="modal-content" style="text-align:center;">
+        <h2 id="welcomeTitle">Bem-vindo ao Divide & Brilha! 🎉</h2>
+        <p style="font-size:18px; margin:20px 0 32px; color: var(--text-secondary); line-height: 1.6;">
+            Jogue e aprenda a dividir números com vírgula de forma divertida.<br>
+            A cada 3 acertos você sobe de nível e o desafio aumenta!<br>
+            <br>
+            <span style="color: var(--accent); font-weight: 600;">→ Clique abaixo para começar a jogar ←</span>
+        </p>
+        <button id="startBtn" class="btn primary" style="font-size:22px; padding: 20px 40px;">Começar a jogar</button>
+        <div style="margin-top:20px; color: var(--text-muted); font-size:14px;">
+            Dica: Você pode pedir ajuda animada <span style="color: var(--accent);">👈</span>
+        </div>
+    </div>
+</div>
+
+<!-- Ajuda animada -->
+<div id="helpModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="helpTitle" hidden>
+    <div class="modal-content">
+        <button id="closeHelp" class="close" aria-label="Fechar ajuda">×</button>
+        <h2 id="helpTitle">Passo a passo (animado)</h2>
+        <div id="helpBoard" class="anim-board"></div>
+        <div class="help-actions">
+            <button id="helpPrev" class="btn ghost">Anterior</button>
+            <button id="helpRestart" class="btn">Reiniciar</button>
+            <button id="helpNext" class="btn primary">Próximo passo</button>
+        </div>
+    </div>
+</div>
+
+<!-- Perda de vida -->
+<div id="lifeModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="lifeTitle" hidden>
+    <div class="modal-content">
+        <h2 id="lifeTitle">Você perdeu 1 coração 💔</h2>
+        <p id="lifeReason" style="color: var(--text-secondary); margin: 16px 0;">Motivo...</p>
+        <div style="display:flex; gap:12px; margin-top:24px; justify-content: center;">
+            <button id="lifeClose" class="btn primary">Continuar</button>
+        </div>
+    </div>
+</div>
+
+<!-- Game Over -->
+<div id="gameOverModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="goTitle" hidden>
+    <div class="modal-content">
+        <h2 id="goTitle">Fim de jogo</h2>
+        <p id="goStats" style="color: var(--text-secondary); margin: 16px 0;">Você marcou 0 pontos.</p>
+        <div style="display:flex; gap:12px; margin-top:24px; justify-content: center; flex-wrap: wrap;">
+            <button id="playAgain" class="btn primary">Jogar de novo</button>
+            <button id="closeGameOver" class="btn ghost">Fechar</button>
+        </div>
+    </div>
+</div>
+
+<div id="confetti" class="confetti" aria-hidden="true"></div>
+
+<footer class="footer">
+    Feito com 💙 para aprender divisão com vírgula. Níveis automáticos, vidas, tempo e bem-vindo antes de jogar!
+</footer>
+
+<script>
+    // ===== Animated particles =====
+    function createParticles() {
+        const container = document.getElementById('particles');
+        if (!container) return;
+
+        for (let i = 0; i < 50; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'particle';
+            particle.style.left = Math.random() * 100 + '%';
+            particle.style.top = Math.random() * 100 + '%';
+            particle.style.animationDelay = Math.random() * 6 + 's';
+            particle.style.animationDuration = (3 + Math.random() * 3) + 's';
+            container.appendChild(particle);
+        }
+    }
+
+    // ===== Rest of the original JavaScript (unchanged) =====
+    const fmtInt = (n) => n.toLocaleString('pt-BR', { maximumFractionDigits: 0 });
+    const toNumber = (s) => {
+        if (typeof s === 'number') return s;
+        if (!s) return NaN;
+        const cleaned = s.replace(/\s/g, '').replace(',', '.');
+        return Number(cleaned);
+    };
+    const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
+    function reprBaseWithComma(baseInt, decimals) {
+        if (decimals <= 0) return fmtInt(baseInt);
+        const s = String(baseInt).padStart(decimals + 1, '0');
+        const intPart = s.slice(0, s.length - decimals);
+        const fracPart = s.slice(-decimals);
+        const intFormatted = Number(intPart).toLocaleString('pt-BR', { maximumFractionDigits: 0 });
+        return `${intFormatted},${fracPart}`;
+    }
+
+    // ===== Sons (WebAudio, sem arquivos externos) =====
+    class SFX {
+        constructor() {
+            this.ctx = null;
+            this.enabled = true;
+        }
+        ensure() {
+            if (!this.enabled) return null;
+            try {
+                if (!this.ctx) this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+                return this.ctx;
+            } catch (e) {
+                console.warn('Audio não disponível:', e);
+                return null;
+            }
+        }
+        beep({ freq = 440, dur = 0.12, type = 'sine', vol = 0.15 }) {
+            const ctx = this.ensure();
+            if (!ctx) return;
+            try {
+                const t0 = ctx.currentTime;
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, t0);
+                gain.gain.setValueAtTime(0, t0);
+                gain.gain.linearRampToValueAtTime(vol, t0 + 0.01);
+                gain.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+                osc.connect(gain).connect(ctx.destination);
+                osc.start(t0);
+                osc.stop(t0 + dur + 0.02);
+            } catch (e) {
+                console.warn('Erro no som:', e);
+            }
+        }
+        success() { this.beep({ freq: 880, dur: 0.10, type: 'sine', vol: 0.18 }); setTimeout(() => this.beep({ freq: 1175, dur: 0.12, type: 'sine', vol: 0.16 }), 110); }
+        error() { this.beep({ freq: 220, dur: 0.18, type: 'triangle', vol: 0.18 }); setTimeout(() => this.beep({ freq: 180, dur: 0.16, type: 'triangle', vol: 0.16 }), 160); }
+        lifeLost() { this.beep({ freq: 440, dur: 0.10, type: 'sine', vol: 0.16 }); setTimeout(() => this.beep({ freq: 330, dur: 0.14, type: 'sine', vol: 0.16 }), 100); setTimeout(() => this.beep({ freq: 247, dur: 0.18, type: 'sine', vol: 0.16 }), 240); }
+        step() { this.beep({ freq: 660, dur: 0.07, type: 'square', vol: 0.12 }); }
+        click() { this.beep({ freq: 400, dur: 0.05, type: 'square', vol: 0.10 }); }
+    }
+    const sfx = new SFX();
+
+    // ===== Level Config (dificuldade automática) =====
+    function cfgForLevel(level) {
+        const maxBase = Math.min(300, 20 + level * 12);
+        const qMin = Math.min(10, 2 + Math.floor(level / 4));
+        const qMax = Math.min(30, 9 + Math.floor(level * 1.2));
+        let decMin, decMax;
+        if (level < 5) { decMin = 1; decMax = 1; }
+        else if (level < 10) { decMin = 1; decMax = 2; }
+        else if (level < 15) { decMin = 2; decMax = 3; }
+        else { decMin = 2; decMax = 4; }
+        const time = Math.max(12, 35 - Math.floor(level * 1.5));
+        return { maxBase, qMin, qMax, decMin, decMax, time };
+    }
+
+    const MAX_LIVES = 3;
+    const LEVEL_UP_XP = 3;
+
+    // ===== Estado =====
+    let state = {
+        score: 0,
+        streak: 0,
+        level: 1,
+        levelXP: 0,
+        lives: MAX_LIVES,
+        problem: null,
+        gameStarted: false,
+    };
+
+    let timerRef = { id: null, total: 0, left: 0, paused: false };
+
+    // ===== Elementos (com verificação de existência) =====
+    function getElement(id) {
+        const el = document.getElementById(id);
+        if (!el) console.warn(`Elemento não encontrado: ${id}`);
+        return el;
+    }
+
+    const el = {
+        welcomeModal: getElement('welcomeModal'),
+        startBtn: getElement('startBtn'),
+        levelNum: getElement('levelNum'),
+        score: getElement('score'),
+        streak: getElement('streak'),
+        resetProgress: getElement('resetProgress'),
+        dividend: getElement('dividend'),
+        divisor: getElement('divisor'),
+        levelInfo: getElement('levelInfo'),
+        answer: getElement('answer'),
+        submit: getElement('submit'),
+        help: getElement('help'),
+        feedback: getElement('feedback'),
+        lives: getElement('lives'),
+        timerText: getElement('timerText'),
+        timerBar: getElement('timerBar'),
+        helpModal: getElement('helpModal'),
+        helpBoard: getElement('helpBoard'),
+        helpPrev: getElement('helpPrev'),
+        helpNext: getElement('helpNext'),
+        helpRestart: getElement('helpRestart'),
+        closeHelp: getElement('closeHelp'),
+        lifeModal: getElement('lifeModal'),
+        lifeReason: getElement('lifeReason'),
+        lifeClose: getElement('lifeClose'),
+        gameOverModal: getElement('gameOverModal'),
+        goStats: getElement('goStats'),
+        playAgain: getElement('playAgain'),
+        closeGameOver: getElement('closeGameOver'),
+        confetti: getElement('confetti'),
+    };
+
+    const randomInt = (a, b) => Math.floor(Math.random() * (b - a + 1)) + a;
+
+    // ===== Persistência =====
+    const save = () => {
+        try {
+            localStorage.setItem('divideGameV8', JSON.stringify({
+                score: state.score,
+                streak: state.streak,
+                level: state.level,
+                levelXP: state.levelXP,
+                lives: state.lives,
+            }));
+        } catch (e) {
+            console.warn('Erro ao salvar:', e);
+        }
+    };
+
+    const load = () => {
+        try {
+            const data = JSON.parse(localStorage.getItem('divideGameV8') || '{}');
+            if (typeof data.score === 'number') state.score = data.score;
+            if (typeof data.streak === 'number') state.streak = data.streak;
+            if (typeof data.level === 'number') state.level = Math.max(1, data.level);
+            if (typeof data.levelXP === 'number') state.levelXP = clamp(data.levelXP, 0, LEVEL_UP_XP - 1);
+            if (typeof data.lives === 'number') state.lives = clamp(data.lives, 0, MAX_LIVES);
+        } catch (e) {
+            console.warn('Erro ao carregar dados:', e);
+        }
+    };
+
+    // ===== Aleatório / Problema =====
+    function generateProblem(level) {
+        const cfg = cfgForLevel(level);
+        let tries = 0;
+        while (tries++ < 100) {
+            let N2 = randomInt(2, cfg.maxBase);
+            let q = randomInt(cfg.qMin, cfg.qMax);
+            let N1 = N2 * q;
+            const decA = randomInt(cfg.decMin, cfg.decMax);
+            const decB = randomInt(Math.max(decA, cfg.decMin), cfg.decMax);
+            const a = N1 / Math.pow(10, decA);
+            const b = N2 / Math.pow(10, decB);
+            if (!(a > b)) continue;
+            const aStr = reprBaseWithComma(N1, decA);
+            const bStr = reprBaseWithComma(N2, decB);
+            const k = Math.max(decA, decB);
+            const n1 = N1 * Math.pow(10, k - decA);
+            const n2 = N2 * Math.pow(10, k - decB);
+            const exact = a / b;
+            const targetInt = Math.trunc(exact);
+            return { a, b, aStr, bStr, N1, N2, decA, decB, k, n1, n2, targetInt, time: cfg.time };
+        }
+        return { aStr: '5,5', bStr: '2,5', N1: 55, N2: 25, decA: 1, decB: 1, k: 1, n1: 55, n2: 25, targetInt: 2, time: cfgForLevel(level).time };
+    }
+
+    // ===== HUD =====
+    function updateHUD() {
+        if (el.levelNum) el.levelNum.textContent = state.level;
+        if (el.score) el.score.textContent = state.score;
+        if (el.streak) el.streak.textContent = state.streak;
+        renderLives();
+    }
+    function renderLives() {
+        if (!el.lives) return;
+        const nodes = [];
+        for (let i = 0; i < MAX_LIVES; i++) {
+            const span = document.createElement('span');
+            span.className = 'heart' + (i < state.lives ? '' : ' lost');
+            span.textContent = '❤️';
+            nodes.push(span);
+        }
+        el.lives.replaceChildren(...nodes);
+    }
+
+    // ===== Timer =====
+    function startTimer(total) {
+        stopTimer();
+        timerRef.total = total;
+        timerRef.left = total;
+        timerRef.paused = false;
+        renderTimer();
+        timerRef.id = setInterval(() => {
+            if (timerRef.paused) return;
+            timerRef.left -= 1;
+            renderTimer();
+            if (timerRef.left <= 0) {
+                stopTimer();
+                loseLife('O tempo acabou!');
+            }
+        }, 1000);
+    }
+    function stopTimer() { if (timerRef.id) clearInterval(timerRef.id); timerRef.id = null; }
+    function pauseTimer() { timerRef.paused = true; }
+    function resumeTimer() { timerRef.paused = false; }
+    function renderTimer() {
+        if (el.timerText) el.timerText.textContent = `${Math.max(0, timerRef.left)}s`;
+        const pct = Math.max(0, Math.min(100, (timerRef.left / timerRef.total) * 100));
+        if (el.timerBar) el.timerBar.style.width = `${pct}%`;
+    }
+
+    // ===== UI =====
+    function setProblem(p) {
+        state.problem = p;
+        if (el.dividend) el.dividend.textContent = p.aStr;
+        if (el.divisor) el.divisor.textContent = p.bStr;
+        if (el.levelInfo) el.levelInfo.textContent = `Nível ${state.level} • Responda com número inteiro (sem vírgula).`;
+        if (el.answer) {
+            el.answer.value = '';
+            el.answer.focus();
+        }
+        setFeedback('', '');
+        startTimer(p.time);
+    }
+    function setFeedback(msg, type = '') {
+        if (!el.feedback) return;
+        el.feedback.textContent = msg;
+        el.feedback.className = `feedback ${type}`;
+    }
+    function bounce() {
+        if (!el.answer) return;
+        el.answer.classList.remove('shake');
+        void el.answer.offsetWidth;
+        el.answer.classList.add('shake');
+    }
+    function shootConfetti() {
+        if (!el.confetti) return;
+        const colors = ['#667eea', '#764ba2', '#f093fb', '#4facfe', '#00f260'];
+        for (let i = 0; i < 40; i++) {
+            const d = document.createElement('div');
+            d.className = 'piece';
+            d.style.left = Math.random() * 100 + 'vw';
+            d.style.background = colors[Math.floor(Math.random() * colors.length)];
+            d.style.animationDelay = (Math.random() * 0.5) + 's';
+            d.style.transform = `translateY(-20px) rotate(${Math.random() * 360}deg)`;
+            el.confetti.appendChild(d);
+            setTimeout(() => d.remove(), 2500);
+        }
+    }
+
+    // ===== Fluxo =====
+    function nextProblem() {
+        if (!state.gameStarted) return;
+        const p = generateProblem(state.level);
+        setProblem(p);
+    }
+    function openLifeModal(reasonMsg) {
+        if (el.lifeReason) el.lifeReason.textContent = reasonMsg;
+        if (el.lifeModal) el.lifeModal.hidden = false;
+        sfx.lifeLost();
+    }
+    function closeLifeModal() {
+        if (el.lifeModal) el.lifeModal.hidden = true;
+        if (state.lives <= 0) {
+            gameOver();
+        } else {
+            nextProblem();
+        }
+    }
+    function loseLife(reasonMsg) {
+        pauseTimer();
+        state.lives = Math.max(0, state.lives - 1);
+        renderLives();
+        setFeedback(reasonMsg, 'err');
+        save();
+        openLifeModal(reasonMsg);
+    }
+
+    // ===== Nível =====
+    function addLevelXP() {
+        state.levelXP += 1;
+        if (state.levelXP >= LEVEL_UP_XP) {
+            state.level += 1;
+            state.levelXP = 0;
+            updateHUD();
+            setFeedback(`Subiu para o Nível ${state.level}! 🚀`, 'ok');
+        }
+    }
+
+    // ===== Correção =====
+    function checkAnswer() {
+        if (!state.gameStarted || !state.problem) return;
+        const p = state.problem;
+        const raw = el.answer?.value?.trim() || '';
+        if (!raw) {
+            setFeedback('Digite sua resposta 🙂', 'info');
+            return;
+        }
+        const val = toNumber(raw);
+        if (!Number.isFinite(val)) {
+            setFeedback('Ops! Digite um número válido.', 'err');
+            bounce();
+            sfx.error();
+            return;
+        }
+        if (Math.abs(val - Math.round(val)) > 1e-9) {
+            setFeedback('Aqui a resposta é um número INTEIRO (sem vírgula).', 'err');
+            bounce();
+            sfx.error();
+            return;
+        }
+
+        const userInt = Math.round(val);
+        if (userInt === p.targetInt) {
+            const base = 10;
+            const bonus = Math.min(state.streak, 10);
+            const add = base + bonus;
+            state.score += add;
+            state.streak += 1;
+            addLevelXP();
+            setFeedback(`Acertou! 🎉 +${add} pontos (bônus x${bonus ? bonus : 1})`, 'ok');
+            shootConfetti();
+            sfx.success();
+            save();
+            updateHUD();
+            stopTimer();
+            setTimeout(() => nextProblem(), 600);
+        } else {
+            state.streak = 0;
+            save(); updateHUD();
+            bounce();
+            sfx.error();
+            loseLife('Resposta incorreta.');
+        }
+    }
+
+    // ===== Ajuda animada =====
+    let helpStep = 0;
+    function factorLabel(k) { return k === 1 ? '10' : `10^${k}`; }
+
+    function renderHelp() {
+        if (!state.problem || !el.helpBoard) return;
+        const p = state.problem;
+        const fact = factorLabel(p.k);
+        const stepBlocks = [
+            `
+        <div class="anim-row">
+          <span class="tag">Passo 1</span>
+          <div class="num-card">
+            <div class="num" id="hA">${p.aStr}</div>
+            <div class="eq" id="hAEq"></div>
+          </div>
+        </div>
+        <div class="status" id="hStatus">Multiplicamos o dividendo por ${fact} para eliminar a vírgula.</div>
+        `,
+            `
+        <div class="anim-row">
+          <span class="tag">Passo 2</span>
+          <div class="num-card">
+            <div class="num" id="hB">${p.bStr}</div>
+            <div class="eq" id="hBEq"></div>
+          </div>
+        </div>
+        <div class="status" id="hStatus">Agora multiplicamos o divisor por ${fact} também.</div>
+        `,
+            `
+        <div class="anim-row">
+          <span class="tag">Passo 3</span>
+          <div class="num-card">
+            <div class="big-op" id="hOp">${fmtInt(p.n1)} ÷ ${fmtInt(p.n2)}</div>
+          </div>
+        </div>
+        <div class="status" id="hStatus">Agora temos uma divisão sem vírgula: ${fmtInt(p.n1)} ÷ ${fmtInt(p.n2)}. Tente resolver (sem mostrar o resultado aqui 😉).</div>
+        `,
+        ];
+
+        el.helpBoard.innerHTML = stepBlocks[helpStep];
+
+        if (helpStep === 0) {
+            const aEq = document.getElementById('hAEq');
+            if (aEq) aEq.textContent = ` × ${fact} = ${fmtInt(p.n1)}`;
+        } else if (helpStep === 1) {
+            const bEq = document.getElementById('hBEq');
+            if (bEq) bEq.textContent = ` × ${fact} = ${fmtInt(p.n2)}`;
+        }
+    }
+    function openHelp() {
+        if (!state.problem || !el.helpModal) return;
+        helpStep = 0;
+        pauseTimer();
+        el.helpModal.hidden = false;
+        renderHelp();
+    }
+    function closeHelp() {
+        if (el.helpModal) el.helpModal.hidden = true;
+        resumeTimer();
+    }
+
+    // ===== Game Over =====
+    function gameOver() {
+        stopTimer();
+        if (el.goStats) el.goStats.textContent = `Você marcou ${state.score} ponto(s) e chegou ao Nível ${state.level}.`;
+        if (el.gameOverModal) el.gameOverModal.hidden = false;
+    }
+
+    // ===== Fluxo de início =====
+    function startGame() {
+        if (state.gameStarted) {
+            return;
+        }
+
+        if (el.welcomeModal) {
+            el.welcomeModal.hidden = true;
+        }
+
+        state.gameStarted = true;
+        updateHUD();
+        nextProblem();
+    }
+
+    // ===== Eventos =====
+    function resetGame() {
+        state.score = 0;
+        state.streak = 0;
+        state.level = 1;
+        state.levelXP = 0;
+        state.lives = MAX_LIVES;
+        state.gameStarted = false;
+        save();
+        updateHUD();
+        if (el.gameOverModal) el.gameOverModal.hidden = true;
+        if (el.welcomeModal) el.welcomeModal.hidden = false;
+    }
+
+    function init() {
+        createParticles(); // Create animated background particles
+        load();
+        updateHUD();
+
+        if (el.welcomeModal) {
+            el.welcomeModal.hidden = false;
+        } else {
+            startGame();
+        }
+
+        const enableAudio = () => sfx.ensure();
+        document.body.addEventListener('click', enableAudio, { once: true });
+
+        if (el.startBtn) {
+            el.startBtn.addEventListener('click', () => {
+                sfx.click();
+                startGame();
+            });
+        }
+
+        if (el.submit) el.submit.addEventListener('click', () => { sfx.click(); checkAnswer(); });
+        if (el.answer) el.answer.addEventListener('keydown', (e) => { if (e.key === 'Enter') checkAnswer(); });
+
+        if (el.help) el.help.addEventListener('click', () => { sfx.click(); openHelp(); });
+        if (el.closeHelp) el.closeHelp.addEventListener('click', () => { sfx.click(); closeHelp(); });
+        if (el.helpModal) el.helpModal.addEventListener('click', (e) => { if (e.target === el.helpModal) closeHelp(); });
+
+        if (el.helpNext) el.helpNext.addEventListener('click', () => { helpStep = Math.min(2, helpStep + 1); sfx.step(); renderHelp(); });
+        if (el.helpPrev) el.helpPrev.addEventListener('click', () => { helpStep = Math.max(0, helpStep - 1); sfx.click(); renderHelp(); });
+        if (el.helpRestart) el.helpRestart.addEventListener('click', () => { helpStep = 0; sfx.click(); renderHelp(); });
+
+        if (el.resetProgress) {
+            el.resetProgress.addEventListener('click', () => {
+                state.score = 0;
+                state.streak = 0;
+                state.level = 1;
+                state.levelXP = 0;
+                state.lives = MAX_LIVES;
+                save(); updateHUD();
+                setFeedback('Progresso zerado.', 'info');
+                if (state.gameStarted) nextProblem();
+            });
+        }
+
+        if (el.lifeClose) el.lifeClose.addEventListener('click', () => { sfx.click(); closeLifeModal(); });
+
+        if (el.playAgain) el.playAgain.addEventListener('click', () => { sfx.click(); resetGame(); });
+        if (el.closeGameOver) el.closeGameOver.addEventListener('click', () => { sfx.click(); if (el.gameOverModal) el.gameOverModal.hidden = true; });
+    }
+
+    document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
