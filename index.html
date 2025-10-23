@@ -1269,7 +1269,10 @@
         if (el.welcomeModal) {
             el.welcomeModal.hidden = true;
         }
-
+        state.lives = MAX_LIVES;
+        renderLives();
+        // ===== FIM DA MUDANÇA =====
+        save();
         state.gameStarted = true;
         updateHUD();
         nextProblem();
@@ -1345,5 +1348,6 @@
 </script>
 </body>
 </html>
+
 
 
