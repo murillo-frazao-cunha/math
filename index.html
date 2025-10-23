@@ -1250,6 +1250,13 @@
     function gameOver() {
         stopTimer();
         if (el.goStats) el.goStats.textContent = `Você marcou ${state.score} ponto(s) e chegou ao Nível ${state.level}.`;
+        
+        // ===== MUDANÇA SOLICITADA =====
+        // Reseta as vidas imediatamente ao entrar em Game Over e atualiza a HUD
+        state.lives = MAX_LIVES;
+        renderLives();
+        // ===== FIM DA MUDANÇA =====
+
         if (el.gameOverModal) el.gameOverModal.hidden = false;
     }
 
@@ -1334,6 +1341,7 @@
     }
 
     document.addEventListener('DOMContentLoaded', init);
+
 </script>
 </body>
 </html>
